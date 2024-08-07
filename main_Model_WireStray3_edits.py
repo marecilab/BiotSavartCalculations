@@ -26,9 +26,10 @@ def calculate_magnetic_field(wire_pos, current, voxel_size, bounds, im_size, nsl
     
     Bx, By, Bz = np.zeros(X.shape), np.zeros(Y.shape), np.zeros(Z.shape)
     
-    # wire_pos = np.flip(wire_pos, 0). # Necessary for experimental centroid data. Not necessary in fabricated data.
+    # wire_pos = np.flip(wire_pos, 0) # Necessary for experimental centroid data. Not necessary in fabricated data.
 
     for idx, pos in enumerate(wire_pos[:-1]):
+        # w/n NIFTI file, x refers to left/right, y refers to anterior/posterior, and z refers to superior/inferior
         wire_diff = wire_pos[idx+1] - wire_pos[idx]
         wireX = wire_diff[0] # x-distance from next centroid to current centroid
         wireY = wire_diff[1] # y-distance from next centroid to current centroid
@@ -39,15 +40,16 @@ def calculate_magnetic_field(wire_pos, current, voxel_size, bounds, im_size, nsl
         R = np.sqrt(Rx**2 + Ry**2 + Rz**2)
         R[R == 0] = np.inf  # Avoid division by zero
 
-        # currently excluding prefactor u0/4pi
-        Bx += current * (wireY*Rz - wireZ*Ry) / (R**3) # * 10**-7
-        By += current * (wireZ*Rx - wireX*Rz) / (R**3) # * 10**-7
-        Bz += current * (wireX*Ry - wireY*Rx) / (R**3) # * 10**-7
+        # 10^-7 refers to u0/4pi
+        # 10^3 is converting voxels [mm] to match units of u0/4pi [T-m/A]
+        Bx += 10**-7 * current * (wireY*Rz - wireZ*Ry) / (R**3) * 10**3
+        By += 10**-7 * current * (wireZ*Rx - wireX*Rz) / (R**3) * 10**3
+        Bz += 10**-7 * current * (wireX*Ry - wireY*Rx) / (R**3) * 10**3
 
     return Bx, By, Bz
 
 # Initial setup and data loading
-F3 = sio.loadmat('sub004_F3.mat')['smCenter'] # * 0.001. No need to multiply by scaling factor since the centroid list is voxelwise.
+F3 = sio.loadmat('sub004_F3.mat')['smCenter'] # * 0.001 # No need to multiply by scaling factor since the centroid list is voxelwise.
 F4 = sio.loadmat('sub004_F4.mat')['smCenter'] # * 0.001
 OZ = sio.loadmat('sub004_OZ.mat')['smCenter'] # * 0.001
 
@@ -62,7 +64,7 @@ voxel_size = [fov/im_size, fov/im_size, fovz/nslices]
 # Fabricate test data
 test_data = np.zeros((100,3))
 test_data[:,0] = fov/2
-test_data[:,1] = np.linspace(1, fov, 100) * 2 # No idea what the *2 does. Leftover from 8/4/2024
+test_data[:,1] = np.linspace(1, fov, 100) # No idea what the *2 does. Leftover from 8/4/2024
 test_data[:,2] = fovz/2
 
 # Current values for the wires
