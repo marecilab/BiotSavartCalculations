@@ -24,7 +24,7 @@ def calculate_magnetic_field(wire_pos, current, voxel_size, bounds, im_size, nsl
     
     Bx, By, Bz = np.zeros(X.shape), np.zeros(Y.shape), np.zeros(Z.shape)
     
-    wire_pos = np.flipud(wire_pos) # Necessary for experimental centroid data. Not necessary in fabricated data.
+    # wire_pos = np.flipud(wire_pos) # Necessary for experimental centroid data. Not necessary in fabricated data.
 
     for idx, pos in enumerate(wire_pos[:-1]):
         # w/n NIFTI file, x refers to left/right, y refers to anterior/posterior, and z refers to superior/inferior
